@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+    jenkins:
+        image: jenkins/jenkins
+        container_name: 'jenkins_m'
+        hostname: jenkins.local
+        environment:
+            - TZ=Europe/Paris
+        volumes:
+            - /srv/docker/jenkins-m/jenkins-data:/var/jenkins_home 
+        ports: 
+            - 80:8080   # Web interface 
+            - 50000:50000 # BuildExecutors
+        links:
+            - gitlab:gitlab 
+
+    gitlab:
+#        image: gitlab/gitlab-ce
+#        container_name: 'gitlab_m'
+#        hostname: gitlab.local
+#        ports:
+#            - 81:80
+#            - 443:443
+#            - 22:22
+#        volumes:
+#            - /srv/docker/gitlab_m/config:/etc/gitlab 
+#            - /srv/docker/gitlab_m/logs:/var/log/gitlab 
+#            - /srv/docker/gitlab_m/data:/var/opt/gitlab
+#        restart: always 
+
+        image: 'gitlab/gitlab-ce:latest'
+        restart: always
+        ports: 
+            - 81:80
+            - 443:443
+            - 22:22
+        container_name : 'gitlab_m'
+        hostname: gitlab.local
+        environment:
+            TZ: Europe/Paris
+            GITLAB_OMNIBUS_CONFIG: |
+                gitlab_rails['time_zone'] = 'America/Montreal'
+                gitlab_rails['gitlab_email_from'] = 'noreply@local.domain'
+                gitlab_rails['manage_backup_path'] = true
+                gitlab_rails['backup_path'] = "/var/opt/gitlab/backups"
+                gitlab_rails['backup_archive_permissions'] = 0640 
+                gitlab_rails['backup_keep_time'] = 604800
+                gitlab_rails['smtp_enable'] = true
+        volumes:
+            - '/srv/docker/gitlab_m/etc:/etc/gitlab'
+            - '/srv/docker/gitlab_m/logs:/var/log/gitlab'
+            - '/srv/docker/gitlab_m/data/:/var/opt/gitlab'
